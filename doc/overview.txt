@@ -1,1 +1,73 @@
-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  overview.txt
+1. Project name, Licensing and Documentation
+
+  1. Real-Time Scalable Asynchronous Input/Output Library (librtsaio).
+
+  2. Home page: http://www.ucodev.org
+
+  3. Licensed under GNU Genral Public License version 3. Please read the
+     LICENSE file located at the project base directory.
+
+  4. Refer to header files at src/ directory for interface documentation.
+
+  5. Doxygen (www.doxygen.org) compatible documentation.
+
+
+II. Compliance and Portability
+
+  1. POSIX.1-2001 and POSIX.1-2008 compliant.
+
+  2. Written in C programming language and should be compiled by C11 or C99
+     compliant compilers.
+
+  3. Supports systems that do not conform to POSIX.1-2008 clock_gettime(),
+     using gettimeofday() instead.
+
+
+III. Notes
+
+  1. epoll_*() system calls are used instead of pselect() on Linux operating
+     systems supporting it.
+
+  2. kevent() is used instead of pselect() on BSD based operating systems
+     supporting it.
+
+  3. Future versions will implement other optional, non-portable, but more
+     scalable alternatives to pselect() for other operating systems supporting
+     such optimizations.
+
+  4. Notes on behaviours for initialization flags:
+
+     ASYNCH_FL_DEFAULT:
+
+     Do not enqueue AIO requests of the same type targetting the same file
+     descriptor with different priorities. There's no way to grant the
+     processing of the requests in this case, and the last request may be
+     processed before any of the previously enqueued ones.
+
+     ASYNCH_FL_NOPRIO, ASYNCH_FL_NOPRIO_MOD:
+
+     When ASYNCH_FL_NOPRIO flag is used, you shall not perform more than one
+     AIO operation of the same time until the last request is notified. If for
+     any reason you need to perform multiple, same typed, AIO requests before
+     any of them are completed, you must initialize librtsaio with the
+     additional flag ASYNCH_FL_NOPRIO_MOD, which will grant the same processing
+     order for all requests by computing the priority queue index as
+     MOD(fd, nrq). Otherwise, by default, using only ASYNCH_FL_NOPRIO without
+     OR'ing it with ASYNCH_FL_NOPRIO_MOD will cause the library to choose the
+     priority queue index in a round-robin fashion.
+
+  5. In order to cancel or suspend ALL enqueued requests, call
+     rtsaio_cancel(NULL) or rtsaio_suspend(NULL), respectively.
+     Note that the developer must ensure that, when cancelling or suspending an
+     enqueued request, the memory region alloc'd for that operation must still
+     valid until rtsaio_cancel() or rtsaio_suspend() return. To ensure that, it
+     isn't recommended to free the request memory inside the notification
+     function.
+
+
+IV. Examples
+
+  1. Not yet available. But librtsaio interface is similar to standard AIO
+     Library specified by POSIX.1-2008.
+
+
