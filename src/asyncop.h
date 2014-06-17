@@ -3,7 +3,7 @@
  * @brief Real-Time Scalable Asynchronous Input/Output Library (librtsaio)
  *        RTSAIO Library Low Level Interface Header
  *
- * Date: 01-05-2013
+ * Date: 17-06-2014
  * 
  * Copyright 2012,2013 Pedro A. Hortas (pah@ucodev.org)
  *
@@ -33,6 +33,7 @@
 #include <sched.h>
 #include <time.h>
 
+#include <sys/select.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 
