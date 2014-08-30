@@ -3,7 +3,7 @@
  * @brief Real-Time Scalable Asynchronous Input/Output Library (librtsaio)
  *        RTSAIO Library Low Level Interface
  *
- * Date: 14-05-2014
+ * Date: 30-08-2014
  * 
  * Copyright 2012-2014 Pedro A. Hortas (pah@ucodev.org)
  *
@@ -1025,7 +1025,7 @@ struct async_handler *async_init(
 		nrq = -nrq;
 		handler->flags |= ASYNCH_FL_NOPRIO;
 
-		if ((opt < spmin) || (opt > spmax)) {
+		if ((opt < ASYNC_SCHED_PRIO_OPT_MIN) || (opt > ASYNC_SCHED_PRIO_OPT_MAX)) {
 			mm_free(handler);
 			errno = EINVAL;
 			return NULL;
