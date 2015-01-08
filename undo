@@ -18,6 +18,8 @@ fi
 rm -f .compiler
 rm -f .ecflags
 rm -f .elflags
+rm -f .archflags
+rm -f .target
 rm -f .done
 
 exit 0
