@@ -2,15 +2,16 @@ CC=`cat ../.compiler`
 DEFS=-DCONFIG_KEVENT=1
 CCFLAGS=${DEFS} -fPIC -g -pthread -O2 -fstrict-aliasing -Wall -Werror -pedantic
 ECFLAGS=`cat ../.ecflags`
+ARCHFLAGS=`cat ../.archflags`
 LDFLAGS=-shared -lpall -lpthread
 ELFLAGS=`cat ../.elflags`
 TARGET=librtsaio.dylib
 
 all:
-	${CC} ${ECFLAGS} ${CCFLAGS} -c asyncop.c
-	${CC} ${ECFLAGS} ${CCFLAGS} -c mm.c
-	${CC} ${ECFLAGS} ${CCFLAGS} -c rtsaio.c
-	${CC} ${ECFLAGS} ${CCFLAGS} -c timespec.c
+	${CC} ${ECFLAGS} ${CCFLAGS} ${ARCHFLAGS} -c asyncop.c
+	${CC} ${ECFLAGS} ${CCFLAGS} ${ARCHFLAGS} -c mm.c
+	${CC} ${ECFLAGS} ${CCFLAGS} ${ARCHFLAGS} -c rtsaio.c
+	${CC} ${ECFLAGS} ${CCFLAGS} ${ARCHFLAGS} -c timespec.c
 	${CC} ${LDFLAGS} -o ${TARGET} asyncop.o rtsaio.o timespec.o ${ELFLAGS}
 
 clean:
