@@ -1,29 +1,27 @@
-#!/bin/bash
+#!/bin/sh
 
-if [ -e ".done" ]; then
-	echo "Already done."
-	exit 1
-fi
+## Detect compiler ##
+. ./lib/sh/compiler.inc
 
-if [ -e "/usr/bin/clang" ]; then
-	echo "/usr/bin/clang" > .compiler
-elif [ -e "/usr/bin/gcc" ]; then
-	echo "/usr/bin/gcc" > .compiler
-elif [ -e "/usr/bin/cc" ]; then
-	echo "/usr/bin/cc" > .compiler
-else
-	echo "No suitable compiler found."
-	exit 1
-fi
+## Detect architecture ##
+. ./lib/sh/arch.inc
 
-if [ `uname` = "Darwin" ] || [ `uname` = "FreeBSD" ]; then
+## Extra target checks ##
+if [ `uname` = "Darwin" ]; then
 	mv src/Makefile src/Makefile.old
-	mv src/Makefile.bsd src/Makefile
+	cp src/Makefile.osx src/Makefile
+elif [ `uname` = "FreeBSD" ]; then
+	mv src/Makefile src/Makefile.old
+	cp src/Makefile.bsd src/Makefile
+elif [ `uname` = "FreeBSD" ]; then
+	mv src/Makefile src/Makefile.old
+	cp src/Makefile.bsd src/Makefile
 elif [ `uname` = "Linux" ]; then
 	mv src/Makefile src/Makefile.old
-	mv src/Makefile.linux src/Makefile
+	cp src/Makefile.linux src/Makefile
 fi
 
+## Options ##
 if [ $# -eq 1 ]; then
 	if [ "${1}" == "fsma" ]; then
 		echo "-DUSE_LIBFSMA" > .ecflags
@@ -34,16 +32,7 @@ else
 	touch .elflags
 fi
 
-if [ `uname -m` = "armv6l" ]; then
-	if [ "`cat .target`" == "rpi" ]; then
-		echo "-ccc-host-triple armv6-unknown-eabi -march=armv6 -mfpu=vfp -mcpu=arm1176jzf-s -mtune=arm1176jzf-s -mfloat-abi=hard" > .archflags
-	else
-		echo "-march=armv6" > .archflags
-	fi
-else
-	echo "" > .archflags
-fi
-
+# Build
 make
 
 if [ $? -ne 0 ]; then

@@ -1,12 +1,12 @@
 CC=`cat ../.compiler`
-DEFS=-DCONFIG_EPOLL=1
+DEFS=-DCONFIG_KEVENT=1
 INCLUDEDIRS=-I../include
 CCFLAGS=${DEFS} -fPIC -g -pthread -O2 -fstrict-aliasing -Wall -Werror -pedantic
 ECFLAGS=`cat ../.ecflags`
 ARCHFLAGS=`cat ../.archflags`
 LDFLAGS=-shared -lpall -lpthread
 ELFLAGS=`cat ../.elflags`
-TARGET=librtsaio.so
+TARGET=librtsaio.dylib
 
 all:
 	${CC} ${INCLUDEDIRS} ${ECFLAGS} ${CCFLAGS} ${ARCHFLAGS} -c asyncop.c

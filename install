@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 if ! [ -e ".done" ]; then
 	echo "Run 'do' first"
@@ -24,14 +24,14 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
-cp src/librtsaio.so /usr/lib/
+cp src/librtsaio.* /usr/lib/
 
 if [ $? -ne 0 ]; then
-	echo "Failed to copy src/librtsaio.so to /usr/lib"
+	echo "Failed to copy src/librtsaio.* to /usr/lib"
 	exit 1;
 fi
 
-cp src/*.h /usr/include/rtsaio/
+cp include/*.h /usr/include/rtsaio/
 
 if [ $? -ne 0 ]; then
 	echo "Failed to copy src/*.h to /usr/include/rtsaio"
