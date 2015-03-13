@@ -526,8 +526,8 @@ static void _async_prio_handler_process(
 	kevent_nfds = kevent(t->kevent_kq, kevent_chlist, kevent_count, t->kevent_evlist, t->kevent_max_events, ptimeout);
 	mm_free(kevent_chlist);
 #elif defined(RTSAIO_NO_PSELECT)
-	ptimeout_val.tv_sec = ptimeout.tv_sec;
-	ptimeout_val.tv_usec = ptimeout.tv_nsec / 1000;
+	ptimeout_val.tv_sec = ptimeout->tv_sec;
+	ptimeout_val.tv_usec = ptimeout->tv_nsec / 1000;
 
 	/* Leaving critical region */
 	pthread_sigmask(SIG_SETMASK, &sigset_prev, NULL);
