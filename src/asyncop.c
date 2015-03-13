@@ -29,7 +29,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <errno.h>
+#ifndef RTSAIO_NO_SCHED_H_INCL
 #include <sched.h>
+#endif
 #include <pthread.h>
 #include <assert.h>
 
@@ -66,6 +68,12 @@ static int _async_op_cancel(
 
 
 /* Engine */
+#ifdef RTSAIO_NO_SIGINFO
+static void _sigaction_custom_sig_handler(int signum)
+{
+	return;
+}
+#else
 static void _sigaction_custom_sig_handler(
 		int signum,
 		siginfo_t *si,
@@ -73,6 +81,7 @@ static void _sigaction_custom_sig_handler(
 {
 	return;
 }
+#endif
 
 static int _compare_asyncop(const void *d1, const void *d2) {
 	const struct async_op *a1 = d1, *a2 = d2;
@@ -513,6 +522,14 @@ static void _async_prio_handler_process(
 #elif defined(CONFIG_KEVENT)
 	kevent_nfds = kevent(t->kevent_kq, kevent_chlist, kevent_count, t->kevent_evlist, t->kevent_max_events, ptimeout);
 	mm_free(kevent_chlist);
+#elif defined(RTSAIO_NO_PSELECT)
+	/* Leaving critical region */
+	pthread_sigmask(SIG_SETMASK, &sigset_prev, NULL);
+
+	/* NOTE: Systems not supporting pselect() are prone to race condition here regarding
+	 * sigmask
+	 */
+	select(fd_max + 1, &t->rset, &t->wset, NULL, ptimeout);
 #else
 	pselect(fd_max + 1, &t->rset, &t->wset, NULL, ptimeout, &sigset_prev);
 #endif
@@ -1048,8 +1065,12 @@ struct async_handler *async_init(
 	/* Install signal handlers */
 	memset(&sa, 0, sizeof(struct sigaction));
 
+#ifdef RTSAIO_NO_SIGACTION
+	sa.sa_handler = &_sigaction_custom_sig_handler;
+#else
 	sa.sa_flags = SA_SIGINFO;
 	sa.sa_sigaction = &_sigaction_custom_sig_handler;
+#endif
 
 	if (sigemptyset(&sa.sa_mask) < 0) {
 		errsv = errno;
