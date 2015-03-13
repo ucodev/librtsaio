@@ -68,7 +68,7 @@ static int _async_op_cancel(
 
 
 /* Engine */
-#ifdef RTSAIO_NO_SIGINFO
+#ifdef RTSAIO_NO_SA_SIGINFO
 static void _sigaction_custom_sig_handler(int signum)
 {
 	return;
@@ -360,6 +360,9 @@ static void _async_prio_handler_process(
 	struct async_op *asyncop_iter = NULL;
 	struct timespec ts_cur, ts_zero = { 0, 0 }, *ptimeout = NULL;
 	struct timespec ts_delta, ts_p = { 0, 0 };
+#ifdef RTSAIO_NO_PSELECT
+	struct timeval ptimeout_val;
+#endif
 	sigset_t sigset_cur, sigset_prev;
 #ifdef CONFIG_EPOLL
 	int n = 0;
@@ -523,13 +526,19 @@ static void _async_prio_handler_process(
 	kevent_nfds = kevent(t->kevent_kq, kevent_chlist, kevent_count, t->kevent_evlist, t->kevent_max_events, ptimeout);
 	mm_free(kevent_chlist);
 #elif defined(RTSAIO_NO_PSELECT)
+	ptimeout_val.tv_sec = ptimeout.tv_sec;
+	ptimeout_val.tv_usec = ptimeout.tv_nsec / 1000;
+
 	/* Leaving critical region */
 	pthread_sigmask(SIG_SETMASK, &sigset_prev, NULL);
 
 	/* NOTE: Systems not supporting pselect() are prone to race condition here regarding
 	 * sigmask
 	 */
-	select(fd_max + 1, &t->rset, &t->wset, NULL, ptimeout);
+	select(fd_max + 1, &t->rset, &t->wset, NULL, &ptimeout_val);
+
+	ptimeout->tv_sec = ptimeout_val.tv_sec;
+	ptimeout->tv_nsec = ptimeout_val.tv_usec * 1000;
 #else
 	pselect(fd_max + 1, &t->rset, &t->wset, NULL, ptimeout, &sigset_prev);
 #endif
@@ -1065,7 +1074,7 @@ struct async_handler *async_init(
 	/* Install signal handlers */
 	memset(&sa, 0, sizeof(struct sigaction));
 
-#ifdef RTSAIO_NO_SIGACTION
+#ifdef RTSAIO_NO_SA_SIGINFO
 	sa.sa_handler = &_sigaction_custom_sig_handler;
 #else
 	sa.sa_flags = SA_SIGINFO;
