@@ -13,12 +13,17 @@ if [ `uname` = "Darwin" ]; then
 elif [ `uname` = "FreeBSD" ]; then
 	mv src/Makefile src/Makefile.old
 	cp src/Makefile.bsd src/Makefile
-elif [ `uname` = "FreeBSD" ]; then
+elif [ `uname` = "OpenBSD" ]; then
 	mv src/Makefile src/Makefile.old
 	cp src/Makefile.bsd src/Makefile
+elif [ `uname` = "Minix" ]; then
+	mv src/Makefile src/Makefile.old
+	cp src/Makefile.minix src/Makefile
 elif [ `uname` = "Linux" ]; then
 	mv src/Makefile src/Makefile.old
 	cp src/Makefile.linux src/Makefile
+else
+	cp src/Makefile src/Makefile.old
 fi
 
 ## Options ##
@@ -38,13 +43,8 @@ make
 if [ $? -ne 0 ]; then
 	echo "Build failed."
 
-	if [ `uname` = "Darwin" ] || [ `uname` = "FreeBSD" ]; then
-		mv src/Makefile src/Makefile.bsd
-		mv src/Makefile.old src/Makefile
-	elif [ `uname` = "Linux" ]; then
-		mv src/Makefile src/Makefile.linux
-		mv src/Makefile.old src/Makefile
-	fi
+	cp src/Makefile.old src/Makefile
+	rm -f src/Makefile.old
 
 	exit 1
 fi
