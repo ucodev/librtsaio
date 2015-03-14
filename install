@@ -38,7 +38,7 @@ if [ $? -ne 0 ]; then
 	exit 1;
 fi
 
-if [ `uname` = "Linux" ]; then
+if [ -e `which ldconfig` ]; then
 	ldconfig
 
 	if [ $? -ne 0 ]; then
