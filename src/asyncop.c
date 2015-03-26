@@ -3,9 +3,9 @@
  * @brief Real-Time Scalable Asynchronous Input/Output Library (librtsaio)
  *        RTSAIO Library Low Level Interface
  *
- * Date: 30-08-2014
+ * Date: 26-03-2015
  * 
- * Copyright 2012-2014 Pedro A. Hortas (pah@ucodev.org)
+ * Copyright 2012-2015 Pedro A. Hortas (pah@ucodev.org)
  *
  * This file is part of librtsaio.
  *
@@ -149,7 +149,7 @@ static void _async_notifier_destroy_all(struct async_handler *handler) {
 	pall_fifo_destroy(handler->qnot);
 	mm_free(handler->tnot);
 	pthread_mutex_destroy(&handler->tnot_mutex);
-#if defined(PTHREAD_PRIO_INHERIT) && (PTHREAD_PRIO_INHERIT != -1)
+#if defined(PTHREAD_PRIO_INHERIT) && (PTHREAD_PRIO_INHERIT != -1) && !defined(RTSAIO_NO_SCHEDPRIO)
 	pthread_mutexattr_destroy(&handler->tnot_mutexattr);
 #endif
 	pthread_cond_destroy(&handler->tnot_cond);
@@ -1032,11 +1032,16 @@ struct async_handler *async_init(
 		return NULL;
 	}
 
+#ifdef RTSAIO_NO_SCHEDPRIO
+	spmax = ASYNC_SCHED_PRIO_OPT_MAX;
+	spmin = ASYNC_SCHED_PRIO_OPT_MIN;
+#else
 	if ((spmax = sched_get_priority_max(sched_policy)) < 0)
 		return NULL;
 
 	if ((spmin = sched_get_priority_min(sched_policy)) < 0)
 		return NULL;
+#endif
 
 	if (!(handler = mm_alloc(sizeof(struct async_handler))))
 		return NULL;
@@ -1123,7 +1128,7 @@ struct async_handler *async_init(
 
 	memset(handler->tnot, 0, sizeof(struct async_notifier) * handler->tnot_limit);
 
-#if defined(PTHREAD_PRIO_INHERIT) && (PTHREAD_PRIO_INHERIT != -1)
+#if defined(PTHREAD_PRIO_INHERIT) && (PTHREAD_PRIO_INHERIT != -1) && !defined(RTSAIO_NO_SCHEDPRIO)
 	if ((errno = pthread_mutexattr_init(&handler->tnot_mutexattr))) {
 		errsv = errno;
 		pall_fifo_destroy(handler->qnot);
@@ -1164,7 +1169,7 @@ struct async_handler *async_init(
 		pall_fifo_destroy(handler->qnot);
 		mm_free(handler->tnot);
 		pthread_mutex_destroy(&handler->tnot_mutex);
-#if defined(PTHREAD_PRIO_INHERIT) && (PTHREAD_PRIO_INHERIT != -1)
+#if defined(PTHREAD_PRIO_INHERIT) && (PTHREAD_PRIO_INHERIT != -1) && !defined(RTSAIO_NO_SCHEDPRIO)
 		pthread_mutexattr_destroy(&handler->tnot_mutexattr);
 #endif
 		errno = errsv;
@@ -1330,7 +1335,7 @@ struct async_handler *async_init(
 		}
 #endif
 
-#if defined(PTHREAD_PRIO_INHERIT) && (PTHREAD_PRIO_INHERIT != -1)
+#if defined(PTHREAD_PRIO_INHERIT) && (PTHREAD_PRIO_INHERIT != -1) && !defined(RTSAIO_NO_SCHEDPRIO)
 		if ((errno = pthread_mutexattr_init(&handler->tprio[i].mutexattr))) {
 			errsv = errno;
 			break;
@@ -1354,7 +1359,7 @@ struct async_handler *async_init(
 		}
 #endif
 
-#if defined(PTHREAD_PRIO_INHERIT) && (PTHREAD_PRIO_INHERIT != -1)
+#if defined(PTHREAD_PRIO_INHERIT) && (PTHREAD_PRIO_INHERIT != -1) && !defined(RTSAIO_NO_SCHEDPRIO)
 		if ((errno = pthread_mutexattr_init(&handler->tprio[i].mutexattr_cancel))) {
 			errsv = errno;
 			break;
@@ -1412,6 +1417,7 @@ struct async_handler *async_init(
 			break;
 		}
 
+#ifndef RTSAIO_NO_SCHEDPRIO
 		if ((errno = pthread_attr_setinheritsched(&handler->tprio[i].attr, PTHREAD_EXPLICIT_SCHED))) {
 			errsv = errno;
 			pthread_mutex_destroy(&handler->tprio[i].mutex);
@@ -1444,6 +1450,7 @@ struct async_handler *async_init(
 			pthread_attr_destroy(&handler->tprio[i].attr);
 			break;
 		}
+#endif
 
 		if ((errno = pthread_create(&handler->tprio[i].tid, &handler->tprio[i].attr, &_async_prio_handler, handler))) {
 			errsv = errno;
@@ -1487,7 +1494,7 @@ struct async_handler *async_init(
 			pthread_cond_destroy(&handler->tprio[i].cond);
 			pthread_cond_destroy(&handler->tprio[i].cond_cancel);
 			pthread_cond_destroy(&handler->tprio[i].cond_suspend);
-#if defined(PTHREAD_PRIO_INHERIT) && (PTHREAD_PRIO_INHERIT != -1)
+#if defined(PTHREAD_PRIO_INHERIT) && (PTHREAD_PRIO_INHERIT != -1) && !defined(RTSAIO_NO_SCHEDPRIO)
 			pthread_mutexattr_destroy(&handler->tprio[i].mutexattr);
 #endif
 			pthread_mutex_destroy(&handler->tprio[i].mutex_cancel);
@@ -1556,7 +1563,7 @@ void async_destroy(struct async_handler *handler) {
 		pthread_cond_destroy(&handler->tprio[i].cond);
 		pthread_cond_destroy(&handler->tprio[i].cond_cancel);
 		pthread_cond_destroy(&handler->tprio[i].cond_suspend);
-#if defined(PTHREAD_PRIO_INHERIT) && (PTHREAD_PRIO_INHERIT != -1)
+#if defined(PTHREAD_PRIO_INHERIT) && (PTHREAD_PRIO_INHERIT != -1) && !defined(RTSAIO_NO_SCHEDPRIO)
 		pthread_mutexattr_destroy(&handler->tprio[i].mutexattr);
 #endif
 		pthread_mutex_destroy(&handler->tprio[i].mutex_cancel);
