@@ -3,7 +3,7 @@
  * @brief Real-Time Scalable Asynchronous Input/Output Library (librtsaio)
  *        RTSAIO Library Low Level Interface
  *
- * Date: 26-03-2015
+ * Date: 28-03-2015
  * 
  * Copyright 2012-2015 Pedro A. Hortas (pah@ucodev.org)
  *
@@ -514,7 +514,8 @@ static void _async_prio_handler_process(
 
 #ifdef CONFIG_KEVENT
 	/* Also monitor the control file descriptor (read end of kevent_pipe) */
-	EV_SET(&kevent_chlist[kevent_count ++], t->kevent_pipe[0], EVFILT_READ, EV_ADD, 0, 0, NULL);
+	EV_SET(&kevent_chlist[kevent_count], t->kevent_pipe[0], EVFILT_READ, EV_ADD, 0, 0, NULL);
+	kevent_count ++;
 
 	/* Leaving critical region */
 	pthread_sigmask(SIG_SETMASK, &sigset_prev, NULL);
