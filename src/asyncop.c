@@ -537,9 +537,6 @@ static void _async_prio_handler_process(
 	 * sigmask
 	 */
 	select(fd_max + 1, &t->rset, &t->wset, NULL, &ptimeout_val);
-
-	ptimeout->tv_sec = ptimeout_val.tv_sec;
-	ptimeout->tv_nsec = ptimeout_val.tv_usec * 1000;
 #else
 	pselect(fd_max + 1, &t->rset, &t->wset, NULL, ptimeout, &sigset_prev);
 #endif
