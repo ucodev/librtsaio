@@ -3,7 +3,7 @@
  * @brief Real-Time Scalable Asynchronous Input/Output Library (librtsaio)
  *        RTSAIO Library timespec interface
  *
- * Date: 17-02-2015
+ * Date: 02-04-2015
  * 
  * Copyright 2012-2015 Pedro A. Hortas (pah@ucodev.org)
  *
@@ -66,10 +66,16 @@ int timespec_compare(const struct timespec *ts1, const struct timespec *ts2) {
 }
 
 void timespec_sub(struct timespec *dest, const struct timespec *src) {
-	long tmp = dest->tv_nsec - src->tv_nsec;
+	long long tmp = dest->tv_nsec - src->tv_nsec;
+	long long sub = dest->tv_sec - src->tv_sec - (tmp < 0);
 
-	dest->tv_sec = dest->tv_sec - src->tv_sec - (tmp < 0);
-	dest->tv_nsec = (tmp < 0) ? 1000000000 + tmp : tmp;
+	if (sub < 0) {
+		dest->tv_sec = 0;
+		dest->tv_nsec = 0;
+	} else {
+		dest->tv_sec = sub;
+		dest->tv_nsec = (tmp < 0) ? 1000000000 + tmp : tmp;
+	}
 }
 
 void timespec_add(struct timespec *dest, const struct timespec *src) {
