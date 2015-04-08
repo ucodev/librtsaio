@@ -1,1 +1,1 @@
--DCONFIG_EPOLL=1 -pthread -fstack-protector-all -Wstack-protector
+-std=gnu99 -DCONFIG_EPOLL=1 -pthread -fstack-protector-all -Wstack-protector
